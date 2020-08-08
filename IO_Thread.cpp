@@ -2,7 +2,7 @@
 #include "GameManager.h"
 #include <iostream>
 
-int GRID_SIZE = 8;
+int GRID_SIZE = 4;
 bool playerMove = true;
 bool gameOver = false;
 
@@ -57,6 +57,8 @@ void input() {
 				if (!gameOver) {
 					if (event.mouseButton.button == Mouse::Left) {
 						if (playerMove) {
+							//gm.AiMove('x');
+							//gameOver = gm.CheckVictory('x');
 							if (gm.SetField('x', GetMouseGridField(Mouse::getPosition()))) {
 								std::cout << 'x' << std::endl;
 								gameOver = gm.CheckVictory('x');
@@ -66,10 +68,19 @@ void input() {
 					}
 					if (event.mouseButton.button == Mouse::Right) {
 						if (!playerMove) {
-							if (gm.SetField('o', RandomAI())) {
-								std::cout << 'o' << std::endl;
-								gameOver = gm.CheckVictory('o');
+							//while (!gm.SetField('o', RandomAI())) {
+								//std::cout << 'o' << std::endl;
+							//}
+							//std::cout << 'o' << std::endl;
+							gm.AiMove('o');
+							gameOver = gm.CheckVictory('o');
+							for (int i = 0; i < GRID_SIZE; ++i) {
+								for (int j = 0; j < GRID_SIZE; ++j) {
+									std::cout << gm.GetField()->at(i)[j] << " | ";
+								}
+								std::cout << std::endl;
 							}
+							std::cout << std::endl;
 							playerMove = true;
 						}
 					}
@@ -78,11 +89,20 @@ void input() {
 		}
 
 		if (gameOver) {
+			for (int i = 0; i < GRID_SIZE; ++i) {
+				for (int j = 0; j < GRID_SIZE; ++j) {
+					std::cout << gm.GetField()->at(i)[j] << " ";
+				}
+				std::cout << std::endl;
+			}
+			std::cout << std::endl;
 			if (Keyboard::isKeyPressed(Keyboard::C)) {
 				std::cout << "clear" << std::endl;
 				gameOver = false;
 				gm.ClearField();
 			}
+		} else {
+			gameOver = !gm.isFreeStep();
 		}
 
 		window.clear();

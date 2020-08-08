@@ -17,6 +17,8 @@ private:
 	std::vector<RectangleShape> tics;
 	std::vector<CircleShape>	tacs;
 
+	const int MAX_DEPTH = 30;
+
 	bool fieldFree(Vector2i);
 public:
 	GameManager(int);
@@ -33,6 +35,14 @@ public:
 
 	bool SetField(char, Vector2i);
 	bool CheckVictory(char);
+	bool CheckVictoryMM(char);
+	bool CheckDraw();
+	bool isFreeStep();
+	int FreeSteps();
 	void ClearField();
+	void AiMove(char);
+	void RandomMove(char);
+
+	int minimax(int, int, int, int*, char, bool);
 };
 
