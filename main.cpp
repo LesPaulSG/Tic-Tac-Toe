@@ -1,36 +1,45 @@
-#include <iostream>
-#include "IO_Thread.h"
-#include <thread>
 #include "GameManager.h"
+#include <iostream>
+#include "definitions.h"
 
 using namespace std;
 
 int main() {
-	int gridSize;
-	bool xAi, oAi;
-	bool gameOver = false, xMove = true, exit = false;
-	cout << "Enter grid size: ";
+	int gridSize;										
+	bool xAi, oAi;										//is X player are AI, is O player are AI
+	bool gameOver = false, xMove = true, exit = false;	//xMove - X player move
+	int uiLenght;										//lenght of uiString, needs for updating string
+	cout << "Enter grid size: ";						//input grid size
 	cin >> gridSize;
-	cout << endl;
-	cout << "Is 'X' player AI? ";
+	cout << endl;										
+	cout << "Is 'X' player AI? ";						//who should play for X
 	cin >> xAi;
 	cout << endl;
-	cout << "Is 'O' player AI? ";
+	cout << "Is 'O' player AI? ";						//who should play for O
 	cin >> oAi;
 	cout << endl;
+
+	string uiString, temp, endGameLine;					//for simple UI
+	uiString.append("X is ");
+	temp = (xAi) ? "AI" : "human";
+	uiString += temp;
+	uiString.append("\nO is ");
+	temp = (oAi) ? "AI" : "human";
+	uiString += temp;
+	uiLenght = uiString.size();							//for string update
+
+	Font font;											//text obj for UI
+	font.loadFromFile("OpenSans-Bold.ttf");				
+	Text ui(uiString, font, 30);						
+	ui.setPosition(gridSize * FIELD_SIZE + 10, 5);
+	ui.setFillColor(Color::Red);						
 
 	RenderWindow window(VideoMode(WIDTH, HEIGHT), "Tic-Tac-Toe", Style::Default);
 	window.setVerticalSyncEnabled(true);
 
-	//std::chrono::duration<float> time;
-	//auto start = std::chrono::high_resolution_clock::now();
-	//auto end = start;
-
 	GameManager gm(gridSize);
 
 	while (!exit) {
-		//start = std::chrono::high_resolution_clock::now();
-
 		Event event;
 		while (window.pollEvent(event)) {
 			if (event.type == Event::Closed) {
@@ -38,30 +47,22 @@ int main() {
 			}
 			else if (event.type == Event::MouseButtonPressed) {
 				if (!gameOver) {
-					if (event.mouseButton.button == Mouse::Left) {
-						if (xMove) {
-							if (xAi) {
+					if (event.mouseButton.button == Mouse::Left) {														//X
+						if (xMove) {																
+							if (xAi) {																					//AI move
 								gm.AiMove('x');
-								gameOver = gm.CheckVictory('x');
 								xMove = false;
-							}
-							if (gm.SetField('x', GetMouseGridField(Mouse::getPosition()))) {
-								std::cout << 'x' << std::endl;
-								gameOver = gm.CheckVictory('x');
+							} else if (gm.SetFieldSpot('x', GetMouseGridField(Mouse::getPosition(window), gridSize))) {	//human move
 								xMove = false;
 							}
 						}
 					}
-					if (event.mouseButton.button == Mouse::Right) {
-						if (!xMove) {
-							if (oAi) {
+					if (event.mouseButton.button == Mouse::Right) {														//O
+						if (!xMove) {																
+							if (oAi) {																					//AI
 								gm.AiMove('o');
-								gameOver = gm.CheckVictory('o');
 								xMove = true;
-							}
-							if (gm.SetField('o', GetMouseGridField(Mouse::getPosition()))) {
-								std::cout << 'o' << std::endl;
-								gameOver = gm.CheckVictory('o');
+							} else if (gm.SetFieldSpot('o', GetMouseGridField(Mouse::getPosition(window), gridSize))) {	//human move
 								xMove = true;
 							}
 						}
@@ -71,12 +72,29 @@ int main() {
 		}
 
 		if (gameOver) {
-			if (Keyboard::isKeyPressed(Keyboard::C)) {
+			if (Keyboard::isKeyPressed(Keyboard::C)) {		//wait for clear command
 				gm.ClearField();
+				uiString.erase(uiLenght, 9);
+				ui.setString(uiString);
 				gameOver = false;
 			}
-		} else {
-			gameOver = !gm.isFreeStep();
+		} else {											//adds game over info
+			if (gm.CheckVictory('x')) {						//for X win
+				endGameLine = "\nX wins!";
+				uiString.insert(uiLenght, endGameLine);
+				ui.setString(uiString);
+				gameOver = true;
+			} else if (gm.CheckVictory('o')) {				//for O win
+				endGameLine = "\nO wins!";
+				uiString.insert(uiLenght, endGameLine);
+				ui.setString(uiString);
+				gameOver = true;
+			} else if (!gm.isFreeSpot()) {					//for draw
+				endGameLine = "\nDraw!  ";
+				uiString.insert(uiLenght, endGameLine);
+				ui.setString(uiString);
+				gameOver = true;
+			}
 		}
 
 		window.clear();
@@ -90,14 +108,12 @@ int main() {
 		for (std::vector<RectangleShape>::iterator iter = gm.GetFieldVis()->begin(); iter != gm.GetFieldVis()->end(); ++iter) {
 			window.draw(*iter);
 		}
+		window.draw(ui);
 
 		window.display();
 
 		if (Keyboard::isKeyPressed(Keyboard::Escape)) {
 			exit = true;
 		}
-
-		//end = std::chrono::high_resolution_clock::now();
-		//time = end - start;
 	}
 }
